@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating - Rehan Connect</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-card {
+            max-width: 420px; margin: 80px auto; background: rgba(255,255,255,0.06);
+            border-radius: 28px; overflow: hidden; border: 1px solid rgba(106,0,255,0.3);
+            animation: fadeIn 0.8s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:none; } }
+        .profile-card img { width:100%; height:480px; object-fit:cover; transition: transform 0.6s; }
+        .profile-card:hover img { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo"><span style="font-size:28px">❤️</span> Dating</div>
+        <a href="video.html" class="btn primary">Video Chat</a>
+    </header>
+
+    <div class="profile-card glass">
+        <img src="https://picsum.photos/id/1011/800/1000" alt="Profile">
+        <div style="padding:25px;">
+            <h2>Emma • 23 • 🇫🇷</h2>
+            <p style="color:#ccc;">Travel lover | Looking for real connection ✨</p>
+            <div style="display:flex;gap:15px;margin-top:35px;">
+                <button onclick="nextProfile()" class="btn secondary" style="flex:1;padding:18px;">💔 Pass</button>
+                <button onclick="likeProfile()" class="btn primary" style="flex:1;padding:18px;">❤️ Like</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function nextProfile() { showToast("👀 New profile..."); setTimeout(() => location.reload(), 800); }
+        function likeProfile() { showToast("💘 It's a Match!"); }
+    </script>
+</body>
+</html>
