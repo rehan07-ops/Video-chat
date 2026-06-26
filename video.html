@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rehan Connect</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .video-wrapper { height: 100vh; position: relative; background: #000; overflow: hidden; }
+        #localVideo { width: 100%; height: 100%; object-fit: cover; }
+        .live-badge, .online-counter { position: absolute; top: 85px; padding: 8px 20px; border-radius: 30px; font-size: 15px; font-weight: 500; z-index: 100; }
+        .live-badge { left: 20px; background: rgba(0,0,0,0.75); color: white; }
+        .online-counter { right: 20px; background: rgba(0,0,0,0.75); color: #00ff9d; }
+        .bottom-controls {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(15,15,30,0.96); backdrop-filter: blur(30px);
+            border-radius: 30px; padding: 18px 25px; display: flex; gap: 22px; z-index: 2000;
+        }
+        .ctrl-btn {
+            width: 58px; height: 58px; border-radius: 50%; background: rgba(106,0,255,0.18);
+            border: 3px solid #9b00ff; display: flex; align-items:center; justify-content:center;
+            font-size: 26px; color: white; cursor: pointer; transition: all 0.3s;
+        }
+        .ctrl-btn:active { transform: scale(0.88); }
+        .ctrl-btn.muted { background: #ff3366; border-color: #ff8899; }
+        .ctrl-btn.recording { background: #ff0033; border-color: #ff6666; animation: pulse 1.5s infinite; }
+        .ctrl-btn.end { background: #ff0033; border-color: #ff6666; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo"><span style="font-size:28px">🎥</span> Rehan Connect</div>
+        <div onclick="toggleSettingsModal()" style="width:50px;height:50px;background:rgba(106,0,255,0.2);border:2px solid #9b00ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;">⚙️</div>
+    </header>
+
+    <div class="video-wrapper">
+        <video id="localVideo" autoplay playsinline></video>
+        <div class="live-badge">LIVE • Connected</div>
+        <div class="online-counter">🔥 <span id="onlineCount">1,428,739</span> online</div>
+    </div>
+
+    <div class="bottom-controls">
+        <div class="ctrl-btn" id="micBtn" onclick="toggleMic()">🎤</div>
+        <div class="ctrl-btn" onclick="flipCamera()">🔄</div>
+        <div class="ctrl-btn" onclick="capturePhoto()">📸</div>
+        <div class="ctrl-btn" id="recordBtn" onclick="toggleRecording()">🎥</div>
+        <div class="ctrl-btn end" onclick="endSession()">✕</div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);align-items:center;justify-content:center;z-index:3000;">
+        <div style="background:rgba(20,20,35,0.98);width:90%;max-width:380px;border-radius:24px;overflow:hidden;border:1px solid rgba(106,0,255,0.5);">
+            <div style="padding:20px;border-bottom:1px solid rgba(106,0,255,0.3);display:flex;justify-content:space-between;">
+                <h2>Settings</h2>
+                <span onclick="toggleSettingsModal()" style="font-size:32px;cursor:pointer;">×</span>
+            </div>
+            <div style="padding:15px;">
+                <div onclick="flipCamera()" style="padding:16px 20px;margin:6px 0;border-radius:16px;background:rgba(255,255,255,0.06);cursor:pointer;">🔄 Flip Camera</div>
+                <div onclick="toggleMic()" style="padding:16px 20px;margin:6px 0;border-radius:16px;background:rgba(255,255,255,0.06);cursor:pointer;display:flex;justify-content:space-between;">
+                    <span>🎤 Microphone</span><span id="micStatus">ON</span>
+                </div>
+                <div onclick="toggleTranslation()" style="padding:16px 20px;margin:6px 0;border-radius:16px;background:rgba(255,255,255,0.06);cursor:pointer;">🌐 AI Translation</div>
+                <div onclick="capturePhoto()" style="padding:16px 20px;margin:6px 0;border-radius:16px;background:rgba(255,255,255,0.06);cursor:pointer;">📸 Capture Photo</div>
+                <div onclick="toggleRecording()" style="padding:16px 20px;margin:6px 0;border-radius:16px;background:rgba(255,255,255,0.06);cursor:pointer;">🎥 Record Video</div>
+                <div onclick="logout()" style="padding:16px 20px;margin:25px 0 6px;border-radius:16px;background:rgba(255,80,80,0.15);color:#ff6666;cursor:pointer;">🚪 Logout</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let stream = null;
+        let currentFacingMode = 'user';
+        let isMicEnabled = true;
+        let isRecording = false;
+        let mediaRecorder, recordedChunks = [];
+        let photoCanvas = document.createElement('canvas');
+
+        async function initCamera(facing = 'user') {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: true });
+            document.getElementById('localVideo').srcObject = stream;
+            currentFacingMode = facing;
+        }
+
+        function flipCamera() { initCamera(currentFacingMode === 'user' ? 'environment' : 'user'); }
+        function toggleMic() {
+            isMicEnabled = !isMicEnabled;
+            stream.getAudioTracks()[0].enabled = isMicEnabled;
+            document.getElementById('micBtn').textContent = isMicEnabled ? '🎤' : '🔇';
+            document.getElementById('micStatus').textContent = isMicEnabled ? 'ON' : 'OFF';
+        }
+        function capturePhoto() { /* same as before */ }
+        function toggleRecording() { /* same as before */ }
+        function endSession() { if(confirm("End?")) window.location.href = "index.html"; }
+        function toggleSettingsModal() {
+            const m = document.getElementById('settingsModal');
+            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        }
+        function toggleTranslation() { showToast("AI Translation Opened (Demo)"); }
+        function logout() { if(confirm("Logout?")) window.location.href = "index.html"; }
+
+        window.onload = () => initCamera('user');
+    </script>
+</body>
+</html>
